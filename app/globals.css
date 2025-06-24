@@ -1,26 +1,109 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #ffffff;
+    --foreground: #171717;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
+}
+
+/* 모바일 컨테이너 - 웹에서도 모바일처럼 보이도록 */
+.mobile-container {
+    max-width: 414px; /* iPhone 12 Pro Max 너비 */
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--background);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* 데스크탑에서 모바일 프레임 효과 */
+@media (min-width: 415px) {
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .mobile-container {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+}
+
+/* 모바일 웹뷰 환경 최적화 */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 입력 필드와 텍스트는 선택 가능하도록 */
+input,
+textarea,
+[contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
+
+    /* 모바일 웹뷰 최적화 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+
+    /* 터치 스크롤 최적화 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+}
+
+/* 모바일에서 스크롤바 숨기기 */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* 터치 영역 최소 크기 보장 */
+button,
+input,
+select,
+textarea {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* 포커스 아웃라인 제거 (모바일에서는 불필요) */
+*:focus {
+    outline: none;
+}
+
+/* 입력 필드 포커스 시 줌 방지 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+textarea {
+    font-size: 16px; /* iOS에서 줌 방지 */
+}
+
+/* 모바일에서 더블탭 줌 방지 */
+html {
+    touch-action: manipulation;
 }

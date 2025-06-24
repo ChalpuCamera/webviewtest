@@ -1,103 +1,125 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+// ReactNativeWebView 타입 선언 (window에 추가)
+declare global {
+    interface Window {
+        ReactNativeWebView?: {
+            postMessage: (msg: string) => void;
+        };
+    }
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function WebviewTest() {
+    const [receivedMsg, setReceivedMsg] = useState("");
+    const [inputMsg, setInputMsg] = useState("");
+    const [isWebView, setIsWebView] = useState(false);
+
+    // WebView 환경 확인
+    useEffect(() => {
+        const checkWebView = () => {
+            const hasReactNativeWebView = !!(
+                window.ReactNativeWebView &&
+                window.ReactNativeWebView.postMessage
+            );
+            setIsWebView(hasReactNativeWebView);
+        };
+
+        checkWebView();
+    }, []);
+
+    // 앱에서 오는 메시지 수신
+    useEffect(() => {
+        function handleMessage(event: MessageEvent) {
+            // React Native WebView의 경우 event.data에 메시지
+            setReceivedMsg(event.data);
+        }
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, []);
+
+    // 웹에서 앱으로 메시지 전송
+    function sendMessageToApp() {
+        if (
+            window.ReactNativeWebView &&
+            window.ReactNativeWebView.postMessage
+        ) {
+            window.ReactNativeWebView.postMessage(inputMsg);
+        } else {
+            alert("앱(안드로이드나 IOS) 환경이 아닙니다.");
+            setInputMsg("");
+
+        }
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-4">
+            {/* 헤더 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+                <h1 className="text-xl font-bold text-gray-800 text-center">
+                    웹뷰 통신 테스트
+                </h1>
+                <p className="text-sm text-gray-600 text-center mt-1">
+                    앱과 웹 간 메시지 송수신
+                </p>
+            </div>
+
+            {/* 메시지 전송 섹션 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                    앱으로 메시지 보내기
+                </h2>
+                <div className="space-y-3">
+                    <input
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base text-gray-600"
+                        type="text"
+                        value={inputMsg}
+                        onChange={(e) => setInputMsg(e.target.value)}
+                        placeholder="메시지를 입력하세요..."
+                        maxLength={100}
+                    />
+                    <button
+                        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium text-base hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        onClick={sendMessageToApp}
+                        disabled={!inputMsg.trim()}
+                    >
+                        메시지 전송
+                    </button>
+                </div>
+            </div>
+
+            {/* 메시지 수신 섹션 */}
+            <div className="bg-white rounded-lg shadow-sm p-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                    앱에서 받은 메시지
+                </h2>
+                <div className="min-h-[80px] p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    {receivedMsg ? (
+                        <div className="text-gray-800 text-base break-words">
+                            {receivedMsg}
+                        </div>
+                    ) : (
+                        <div className="text-gray-400 text-base italic">
+                            아직 받은 메시지가 없습니다
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 상태 표시 */}
+            <div className="mt-4 text-center">
+                {isWebView ? (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        웹뷰 연결됨
+                    </div>
+                ) : (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                        웹 브라우저 환경
+                    </div>
+                )}
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
